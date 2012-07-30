@@ -1,0 +1,17 @@
+{
+  "name" : "Flake",
+  "version" : "0.1",
+  "description" : "Extension to experiment with script blocking and other security measures in Chrome.",
+  "permissions": [ 
+    "cookies", "tabs", "*://*/*", "webRequest", "webRequestBlocking",
+    "contentSettings", "privacy" ],
+  "icons": { "16": "icon-16.png", "48": "icon-48.png", "128": "icon-256.png" },
+  "browser_action": {
+    "default_icon": "icon-16.png",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "page": "background.html"
+  },
+  "manifest_version": 2
+}
