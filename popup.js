@@ -1,29 +1,11 @@
-var incognito;
-var url;
-
 function $(id) {
   return document.getElementById(id);
 }
 
-
-function toggleOffline() {
-  chrome.extension.sendRequest({msg: "toggleOfflineMode"}, function(response) {
-    console.log("OfflineMode: " + response.offline);
-    $('offlineMode').checked = response.offline;
-  });
-}
-
 function init() {
-  chrome.extension.sendRequest({msg: "getOfflineMode"}, function(response) {
-    console.log("OfflineMode: " + response.offline);
-    $('offlineMode').checked = response.offline;
-  });
-  
   chrome.tabs.query({active: true, windowId: chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
     chrome.extension.sendRequest({msg: "getDomains", tabId: tabs[0].id}, getDomainsResponse);
   });
-
-  $('offlineMode').onclick = toggleOffline;
 }
 
 function getOrigin(uri) {

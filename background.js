@@ -124,15 +124,27 @@ dispatchTable['toggleOfflineMode'] = function(request, sendResponse) {
   sendResponse({offline: offlineMode});
 };
 
+dispatchTable['toggleHttps'] = function(request, sendResponse) {
+  blockNonHTTPS = !blockNonHTTPS;
+  chrome.webRequest.handlerBehaviorChanged();
+  console.log("Toggled HTTPS only mode to: " + blockNonHTTPS);
+  sendResponse({onlyHttps: blockNonHTTPS});
+};
+
 dispatchTable['getDomains'] = function getDomains(request, sendResponse) {
   var t = tabsData.tabs[request.tabId];
   var r = {scripts: t.scripts};
   sendResponse(r);
 }
 
+dispatchTable['getOptions'] = function(request, sendResponse) {
+  var response = {offline: offlineMode, onlyHttps: blockNonHTTPS};
+  sendResponse(response);
+}
+
 function msgListener(request, sender, sendResponse) {
   console.log(sender.tab ?
-              "from a content script:" + sender.tab.url :
+              "from content script:" + sender.tab.url :
               "from the extension");
   var f = dispatchTable[request.msg];
   if (f !== undefined) {
