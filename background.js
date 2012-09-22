@@ -105,9 +105,10 @@ function init() {
     ["blocking"]
   );
  
-  initTabs(); 
   lockDownContentSettings();
   chrome.extension.onRequest.addListener(msgListener);
+  initConfig();
+  initTabs();
 }
 
 var dispatchTable = new Array();
@@ -152,14 +153,17 @@ function msgListener(request, sender, sendResponse) {
   }
 }
 
-function enableJS(domain) {
+function enableJS(origin) {
+  var pattern = origin + "/*";
   chrome.contentSettings.javascript.set(
-    { 'primaryPattern': domain, 'setting': 'allow', 'scope': 'regular' },
+    { 'primaryPattern': pattern, 'setting': 'allow', 'scope': 'regular' },
     function () {
-      if (chrome.extension.lastError === undefined)
-        console.log("JavaScript enabled successfully for: " + domain);
-      else
-        console.log("Failed to enable JavaScript for " + domain + " due to: ", chrome.extension.lastError);
+      if (chrome.extension.lastError === undefined) {
+        console.log("JavaScript enabled successfully for: " + pattern);
+        configData.addScriptOrigin(pattern, 'allow');
+      } else {
+        console.log("Failed to enable JavaScript for " + origin + " due to: ", chrome.extension.lastError);
+      }
     }
   );
 }
