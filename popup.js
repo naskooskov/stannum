@@ -4,7 +4,7 @@ function $(id) {
 
 function init() {
   chrome.tabs.query({active: true, windowId: chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
-    chrome.extension.sendRequest({msg: "getDomains", tabId: tabs[0].id}, getDomainsResponse);
+    chrome.extension.sendRequest({msg: "getOrigins", tabId: tabs[0].id}, getOriginsResponse);
   });
 }
 
@@ -15,24 +15,26 @@ function getOrigin(uri) {
   return origin;
 }
 
-function getDomainsResponse(domain) {
-  console.log("getDomainsResponse");
+function createScriptEntry(origin, data) {
+  var d = document.createElement("div");
+  d.id = origin;
+  var p = document.createElement("h3");
+  p.innerHTML = origin + " | " + data.setting;
+  d.appendChild(p);
+
+  return d;
+}
+
+function getOriginsResponse(data) {
+  console.log("getOriginsResponse");
   var ds = new Array();
 
-  for (var i = 0; i < domain.scripts.length; ++i) {
-    var origin = getOrigin(domain.scripts[i]);
-    if ($(origin) == null) {
-      var d = document.createElement("div");
-      d.id = origin;
-      var p = document.createElement("h2");
-      p.innerHTML = origin;
-      d.appendChild(p);
-      $('domains').appendChild(d);
-    }
-    
-    var s = document.createElement("div");
-    s.innerHTML = domain.scripts[i].source;
-    $(origin).appendChild(s);
+  var scripts = data.scripts;
+
+  for (var origin in scripts) {
+    if ($(origin) !== null)
+      continue;
+    $('domains').appendChild(createScriptEntry(origin, scripts[origin]));
   }
 }
 

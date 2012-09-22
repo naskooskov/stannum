@@ -132,9 +132,19 @@ dispatchTable['toggleHttps'] = function(request, sendResponse) {
   sendResponse({onlyHttps: blockNonHTTPS});
 };
 
-dispatchTable['getDomains'] = function getDomains(request, sendResponse) {
+dispatchTable['getOrigins'] = function getOrigins(request, sendResponse) {
   var t = tabsData.tabs[request.tabId];
-  var r = {scripts: t.scripts};
+  var scripts = {};
+  for (var i = 0; i < t.scripts.length; ++i) {
+    var origin = getOriginFromUri(t.scripts[i]);
+    var config = configData.scripts[origin + '/*'];
+    if (config === undefined) {
+      scripts[origin] = {'setting': 'block'};
+    } else {
+      scripts[origin] = {'setting': 'config.setting'};
+    }
+  }
+  var r = {'scripts': scripts};
   sendResponse(r);
 }
 
