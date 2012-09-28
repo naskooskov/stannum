@@ -1,0 +1,22 @@
+body {
+  min-width: 600px;
+  max-width: 100%;
+  position: relative;
+  vertical-align:middle;
+}
+
+button {
+  -webkit-border-radius:5px;
+  color:rgba(0,0,0,0.9);
+  text-shadow:1px 1px 0px rgba(255,255,255,0.8);
+}
+
+button:hover {
+  background:rgba(240,240,240,1);
+}
+
+button:disabled {
+  color:rgba(0,0,0,0.4);
+  text-shadow:1px 1px 0px rgba(255,255,255,0.5);
+  background:rgba(220,220,220,1);
+}

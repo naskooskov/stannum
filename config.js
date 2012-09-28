@@ -4,14 +4,22 @@ function ScriptSetting() {
   this.setting;
 }
 
+// This object stores configuration data to be applied when the extension
+// initializes. It stores only overrides to the default policy.
 function ConfigData() {
   this.scripts = {};
 
   this.addScriptOrigin = function(pattern, setting) {
-    var s = new ScriptSetting();
-    s.pattern = pattern;
-    s.setting = setting;
-    this.scripts[pattern] = s;
+    // If a pattern exists and we want to block it, just remove it as the
+    // default policy is to block.
+    if (this.scripts[pattern] !== undefined && setting === 'block') {
+      delete this.scripts[pattern];
+    } else {
+      var s = new ScriptSetting();
+      s.pattern = pattern;
+      s.setting = setting;
+      this.scripts[pattern] = s;
+    }
 
     this.save();
   }

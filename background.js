@@ -141,11 +141,18 @@ dispatchTable['getOrigins'] = function getOrigins(request, sendResponse) {
     if (config === undefined) {
       scripts[origin] = {'setting': 'block'};
     } else {
-      scripts[origin] = {'setting': 'config.setting'};
+      scripts[origin] = {'setting': config.setting};
     }
   }
-  var r = {'scripts': scripts};
-  sendResponse(r);
+
+  chrome.tabs.get(request.tabId, function(tab) {
+    var tabOrigin = getOriginFromUri(parseUri(tab.url));
+    getResource(tabOrigin, function(origin, value) {
+      scripts[origin] = {'setting': value};
+      var r = {'scripts': scripts};
+      sendResponse(r);
+    });
+  });
 }
 
 dispatchTable['getOptions'] = function(request, sendResponse) {
@@ -153,14 +160,65 @@ dispatchTable['getOptions'] = function(request, sendResponse) {
   sendResponse(response);
 }
 
+dispatchTable['allowResource'] = function(request, sendResponse) {
+  var origin = request.origin;
+  console.log('Allowing resource from: ' + origin);
+  setResource(origin, 'allow', function(setting) { 
+    sendResponse({'origin': origin, 'setting': setting}); });
+}
+
+dispatchTable['blockResource'] = function(request, sendResponse) {
+  var origin = request.origin;
+  console.log('Blocking resource from: ' + origin);
+  setResource(origin, 'block', function(setting) { 
+    sendResponse({'origin': origin, 'setting': setting}); });
+}
+
+dispatchTable['ping'] = function(request, sendResponse) {
+  console.log("ping: " + request.data);
+}
+
 function msgListener(request, sender, sendResponse) {
   console.log(sender.tab ?
-              "from content script:" + sender.tab.url :
-              "from the extension");
+              "msg |" + request.msg + "| from content script:" + sender.tab.url :
+              "msg from the extension");
   var f = dispatchTable[request.msg];
   if (f !== undefined) {
     f(request, sendResponse);
   }
+}
+
+function getResource(origin, callback) {
+  var pattern = origin + "/*";
+  chrome.contentSettings.javascript.get(
+    { 'primaryUrl': pattern },
+    function (details) {
+      if (chrome.extension.lastError === undefined) {
+        console.log("Resource set to " + details.setting + " for " + pattern);
+        if (callback !== undefined)
+          callback(origin, details.setting);
+      } else {
+        console.log("Failed to get value for " + origin + " due to: ", chrome.extension.lastError);
+      }
+    }
+  );
+}
+
+function setResource(origin, setting, callback) {
+  var pattern = origin + "/*";
+  chrome.contentSettings.javascript.set(
+    { 'primaryPattern': pattern, 'setting': setting },
+    function () {
+      if (chrome.extension.lastError === undefined) {
+        console.log("Resource set to " + setting + " successfully for: " + pattern);
+        configData.addScriptOrigin(pattern, setting);
+        if (callback !== undefined)
+          callback(setting);
+      } else {
+        console.log("Failed to enable JavaScript for " + origin + " due to: ", chrome.extension.lastError);
+      }
+    }
+  );
 }
 
 function enableJS(origin) {
