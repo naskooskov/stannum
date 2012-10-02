@@ -7,7 +7,9 @@ function ScriptSetting() {
 // This object stores configuration data to be applied when the extension
 // initializes. It stores only overrides to the default policy.
 function ConfigData() {
-  this.scripts = {};
+  this.init = function() {
+    this.scripts = {};
+  }
 
   this.addScriptOrigin = function(pattern, setting) {
     // If a pattern exists and we want to block it, just remove it as the
@@ -47,6 +49,7 @@ function ConfigData() {
 var configData = new ConfigData();
 
 function initConfig() {
+  configData.init();
   configData.load();
   configData.applyConfig();
 }
