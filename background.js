@@ -96,6 +96,104 @@ function lockDownContentSettings() {
   );
 }
 
+function lockDownPrivacy() {
+  chrome.privacy.services.autofillEnabled.get({}, function(details) {
+    if (details.levelOfControl === 'controllable_by_this_extension') {
+      chrome.privacy.services.autofillEnabled.set({ value: false }, function() {
+        if (chrome.extension.lastError === undefined)
+          console.log("Autofill disabled successfully.");
+        else
+          console.log("Failed to disable autofill!", chrome.extension.lastError);
+      });
+    } else {
+      console.log("Access denied to disable Autofill");
+    }
+  });
+  chrome.privacy.services.alternateErrorPagesEnabled.get({}, function(details) {
+    if (details.levelOfControl === 'controllable_by_this_extension') {
+      chrome.privacy.services.alternateErrorPagesEnabled.set({ value: false }, function() {
+        if (chrome.extension.lastError === undefined)
+          console.log("Alternate error pages disabled successfully.");
+        else
+          console.log("Failed to disable alternate error pages!", chrome.extension.lastError);
+      });
+    } else {
+      console.log("Access denied to disable alternate error pages");
+    }
+  });
+  chrome.privacy.services.instantEnabled.get({}, function(details) {
+    if (details.levelOfControl === 'controllable_by_this_extension') {
+      chrome.privacy.services.instantEnabled.set({ value: false }, function() {
+        if (chrome.extension.lastError === undefined)
+          console.log("Instant disabled successfully.");
+        else
+          console.log("Failed to disable instant!", chrome.extension.lastError);
+      });
+    } else {
+      console.log("Access denied to disable instant");
+    }
+  });
+  chrome.privacy.services.safeBrowsingEnabled.get({}, function(details) {
+    if (details.levelOfControl === 'controllable_by_this_extension') {
+      chrome.privacy.services.safeBrowsingEnabled.set({ value: false }, function() {
+        if (chrome.extension.lastError === undefined)
+          console.log("SafeBrowsing disabled successfully.");
+        else
+          console.log("Failed to disable SafeBrowsing!", chrome.extension.lastError);
+      });
+    } else {
+      console.log("Access denied to disable SafeBrowsing.");
+    }
+  });
+  chrome.privacy.services.searchSuggestEnabled.get({}, function(details) {
+    if (details.levelOfControl === 'controllable_by_this_extension') {
+      chrome.privacy.services.searchSuggestEnabled.set({ value: false }, function() {
+        if (chrome.extension.lastError === undefined)
+          console.log("SearchSuggest disabled successfully.");
+        else
+          console.log("Failed to disable SearchSuggest!", chrome.extension.lastError);
+      });
+    } else {
+      console.log("Access denied to disable SearchSuggest");
+    }
+  });
+  chrome.privacy.services.translationServiceEnabled.get({}, function(details) {
+    if (details.levelOfControl === 'controllable_by_this_extension') {
+      chrome.privacy.services.translationServiceEnabled.set({ value: false }, function() {
+        if (chrome.extension.lastError === undefined)
+          console.log("Translate disabled successfully.");
+        else
+          console.log("Failed to disable Translate!", chrome.extension.lastError);
+      });
+    } else {
+      console.log("Access denied to disable Translate");
+    }
+  });
+  chrome.privacy.network.networkPredictionEnabled.get({}, function(details) {
+    if (details.levelOfControl === 'controllable_by_this_extension') {
+      chrome.privacy.network.networkPredictionEnabled.set({ value: false }, function() {
+        if (chrome.extension.lastError === undefined)
+          console.log("NetworkPrediction disabled successfully.");
+        else
+          console.log("Failed to disable NetworkPrediction!", chrome.extension.lastError);
+      });
+    } else {
+      console.log("Access denied to disable NetworkPrediction");
+    }
+  });
+  chrome.privacy.websites.thirdPartyCookiesAllowed.get({}, function(details) {
+    if (details.levelOfControl === 'controllable_by_this_extension') {
+      chrome.privacy.websites.thirdPartyCookiesAllowed.set({ value: false }, function() {
+        if (chrome.extension.lastError === undefined)
+          console.log("ThirdPartyCookies disabled successfully.");
+        else
+          console.log("Failed to disable ThirdPartyCookies!", chrome.extension.lastError);
+      });
+    } else {
+      console.log("Access denied to disable ThirdPartyCookies");
+    }
+  });
+}
 
 function init() {
   // Install the web request filter as the first order of initialization
@@ -106,6 +204,7 @@ function init() {
   );
  
   lockDownContentSettings();
+  lockDownPrivacy();
   chrome.extension.onRequest.addListener(msgListener);
   initConfig();
   initTabs();
