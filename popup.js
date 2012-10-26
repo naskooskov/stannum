@@ -12,16 +12,6 @@ function init() {
   });
 }
 
-function createScriptEntry(origin, data) {
-  var d = document.createElement('div');
-  d.id = origin;
-  var p = document.createElement('h3');
-  p.innerHTML = origin + ' | ' + data.setting;
-  d.appendChild(p);
-
-  return d;
-}
-
 function getOriginsResponse(data) {
   console.log('getOriginsResponse');
   var ds = new Array();
@@ -48,13 +38,16 @@ function ResourceEntry(origin, data) {
     var label = document.createTextNode(origin);
 
     this.allowButton.innerText = 'Allow';
+    this.allowButton.disabled = true;
+    this.allowButton.classList.add('allow-button');
     this.allowButton.resource = this;
     this.allowButton.onclick = this.allowResource;
+
     this.blockButton.innerText = 'Block';
+    this.blockButton.disabled = true;
+    this.blockButton.classList.add('block-button');
     this.blockButton.resource = this;
     this.blockButton.onclick = this.blockResource;
-
-    this.updateState(this.data.setting);
 
     content.appendChild(label);
     content.appendChild(this.allowButton);
@@ -65,6 +58,16 @@ function ResourceEntry(origin, data) {
     resource.appendChild(content);
 
     node.appendChild(resource);
+
+    chrome.contentSettings.javascript.get({ 'primaryUrl': this.origin },
+      function (details) {
+        if (chrome.extension.lastError === undefined) {
+          console.log("Setting resource to " + details.setting + " for " + origin);
+          $(origin).resource.updateState(details.setting);
+        } else {
+          console.log("Failed to get JavaScript setting");
+        }
+      });
   }
 
   this.allowResource = function() {
