@@ -46,6 +46,13 @@ function requestFilter(details) {
   return {cancel: false};
 }
 
+function headersHandler() {
+
+}
+
+function redirectHandler() {
+
+}
 
 function lockDownContentSettings() {
   chrome.contentSettings.javascript.set(
@@ -203,6 +210,18 @@ function init() {
     ["blocking"]
   );
  
+  chrome.webRequest.onHeadersReceived.addListener(
+		headersHandler,
+    {urls: ["<all_urls>"]},
+    ["blocking"]
+	);
+
+	chrome.webRequest.onBeforeRequest.addListener(
+		redirectHandler,
+		{urls: ["<all_urls>"]},
+		["blocking"]
+	);
+
   lockDownContentSettings();
   lockDownPrivacy();
   chrome.extension.onRequest.addListener(msgListener);
