@@ -2,6 +2,7 @@ console.log("Flake initialized");
 
 var offlineMode = false;
 var blockNonHTTPS = false;
+var upgradeHTTP = false;
 var extURL = chrome.extension.getURL("");
 
 init();
@@ -14,15 +15,26 @@ function requestFilter(details) {
   if (details.url.indexOf(extURL) == 0) {
     return {cancel: false};
   }
+
   // If we are in offline mode, block all requests.
   if (offlineMode) {
     console.log("Blocking offline " + reqLog);
-    return  {cancel: true};
+    return {cancel: true};
+  }
+
+  // Transform HTTP to HTTPS.
+  if (upgradeHTTP) {
+    if (0 == details.url.indexOf("http:")) {
+      var old = details.url;
+      details.url = "https:" + details.url.substr(5);
+      console.log("Upgraded '" + old + "' to '" + details.url + "'");
+      return { redirectUrl: details.url };
+    }
   }
 
   var uri = parseUri(details.url);
-  
-  // Block non-https traffic.
+
+  // Block non-HTTPS traffic.
   if (blockNonHTTPS) {
     if (uri.protocol == "chrome") {
       console.log("Allowing chrome scheme " + reqLog);
@@ -30,7 +42,7 @@ function requestFilter(details) {
     }
     if (uri.protocol != "https") {
       console.log("Blocking non-https " + reqLog);
-      return  {cancel: true};
+      return {cancel: true};
     }
   }
 
@@ -41,7 +53,7 @@ function requestFilter(details) {
   if (details.type === 'script') {
     tabsData.addScripts(details.tabId, uri);
   }
-  
+
   console.log("Allow " + reqLog);
   return {cancel: false};
 }
@@ -246,8 +258,15 @@ dispatchTable['toggleOfflineMode'] = function(request, sendResponse) {
 dispatchTable['toggleHttps'] = function(request, sendResponse) {
   blockNonHTTPS = !blockNonHTTPS;
   chrome.webRequest.handlerBehaviorChanged();
-  console.log("Toggled HTTPS only mode to: " + blockNonHTTPS);
+  console.log("Toggled HTTPS-only mode to: " + blockNonHTTPS);
   sendResponse({onlyHttps: blockNonHTTPS});
+};
+
+dispatchTable['toggleUpgradeHttp'] = function(request, sendResponse) {
+  upgradeHTTP = !upgradeHTTP;
+  chrome.webRequest.handlerBehaviorChanged();
+  console.log("Toggled upgrade HTTP mode to: " + upgradeHTTP);
+  sendResponse({upgradeHttp: upgradeHTTP});
 };
 
 dispatchTable['getOrigins'] = function getOrigins(request, sendResponse) {
@@ -274,7 +293,11 @@ dispatchTable['getOrigins'] = function getOrigins(request, sendResponse) {
 }
 
 dispatchTable['getOptions'] = function(request, sendResponse) {
-  var response = {offline: offlineMode, onlyHttps: blockNonHTTPS};
+  var response = {
+    offline: offlineMode,
+    onlyHttps: blockNonHTTPS,
+    upgradeHttp: upgradeHTTP
+  };
   sendResponse(response);
 }
 
