@@ -33,7 +33,7 @@ function ConfigData() {
 
   this.load = function() {
     var scripts = localStorage.getItem('scripts');
-    this.scripts = JSON.parse(scripts);
+    this.scripts = JSON.parse(scripts) || {};
   }
 
   this.applyConfig = function() {
