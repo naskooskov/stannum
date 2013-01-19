@@ -271,7 +271,7 @@ flake.handlers.requestFilter = function(details) {
   }
 
   // Transform HTTP to HTTPS.
-  if (flake.upgradeHttpMode && /^http:\/\/i.test(url)) {
+  if (flake.upgradeHttpMode && /^http:\/\//i.test(url)) {
     var newUrl = 'https:' + url.substring(5);
     console.log('Upgraded ' + url + ' to ' + newUrl);
     return { redirectUrl: newUrl };
