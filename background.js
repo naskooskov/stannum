@@ -183,18 +183,22 @@ flake.setPrivacySetting_ = function(setting, settingArgs, settingName) {
  * Sets the settings for loading a particular resource.
  * @param {string} origin The origin from which the resource is loaded.
  * @param {string} setting The setting to apply to the given resource.
+ * @param {boolean} temp Inidicator whether the setting should be temporary
+ *     or not.
  * @param {function(...)=} opt_callback An optional callback to invoke once the
  *     setting is applied to the given resource.
  */
-flake.setResourceSetting = function(origin, setting, opt_callback) {
+flake.setResourceSetting = function(origin, setting, temp, opt_callback) {
   var pattern = origin + '/*';
   flake.setSetting_(chrome.contentSettings.javascript, {
     primaryPattern: pattern,
     setting: setting
   }, 'JavaScript', function() {
 
-    // TODO(radi): Refactor.
-    configData.addScriptOrigin(pattern, setting);
+    if (!temp) {
+      // TODO(radi): Refactor.
+      configData.addScriptOrigin(pattern, setting);
+    }
 
     if(opt_callback) {
       opt_callback(setting);
@@ -281,7 +285,6 @@ flake.handlers.requestFilter = function(details) {
   if (flake.alwaysHttpsMode) {
     if (/^(chrome|https):\/\//.test(details.url)) {
       console.log('Allowing ' + requestLog);
-      return;
     } else {
       console.log('Blocking non-HTTPS ' + requestLog);
       return  {cancel: true};
@@ -309,7 +312,7 @@ dispatchTable['getOrigins'] = function getOrigins(request, sendResponse) {
   var t = flake.tabsHolder.tabs[request.tabId];
   var scripts = {};
   for (var i = 0; i < t.scripts.length; ++i) {
-    var origin = getOriginFromUri(t.scripts[i]);
+    var origin = getOriginFromUrl(t.scripts[i]);
     var config = t.scripts[origin + '/*'];
     if (config === undefined) {
       scripts[origin] = {'setting': 'block'};
@@ -319,7 +322,7 @@ dispatchTable['getOrigins'] = function getOrigins(request, sendResponse) {
   }
 
   chrome.tabs.get(request.tabId, function(tab) {
-    var tabOrigin = getOriginFromUri(parseUri(tab.url));
+    var tabOrigin = getOriginFromUrl(tab.url);
     flake.getResourceSetting(tabOrigin, function(origin, value) {
       scripts[origin] = {'setting': value};
       var r = {'scripts': scripts};
@@ -331,8 +334,19 @@ dispatchTable['getOrigins'] = function getOrigins(request, sendResponse) {
 dispatchTable['allowResource'] = function(request, sendResponse) {
   var origin = request.origin;
   console.log('Allowing resource from: ' + origin);
-  flake.setResourceSetting(origin, 'allow', function(setting) { 
+  flake.setResourceSetting(origin, 'allow', false, function(setting) { 
     sendResponse({'origin': origin, 'setting': setting}); });
+}
+
+dispatchTable['allowResourceTemp'] = function(request, sendResponse) {
+  var origin = request.origin;
+  console.log('Allowing temporarily resource from: ' + origin);
+  if (flake.tabsHolder.tabs[request.tabId] !== undefined) {
+    flake.tabsHolder.tabs[request.tabId].tempSciptExceptions.push(origin);
+  }
+  flake.setResourceSetting(origin, 'allow', true, function(setting) { 
+    sendResponse({'origin': origin, 'setting': setting}); });
+
 }
 
 dispatchTable['blockResource'] = function(request, sendResponse) {

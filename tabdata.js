@@ -46,6 +46,14 @@ flake.TabInstance = function(tabId) {
    * @type {!Array}
    */
   this.others = [];
+
+  /**
+   * A collection of script origins, which are temporarily allowed and
+   * should be blocked once the tab is closed. This array should not be
+   * cleared on reload, as it must keep all temporary exceptions for the
+   * lifetime of the tab.
+   */
+  this.tempSciptExceptions = [];
 };
 
 
@@ -56,6 +64,11 @@ flake.TabInstance.prototype.add = function(objType, uri) {
 
 flake.TabInstance.prototype.reset = function() {
   for (var prop in this) {
+    // Skip the temporary exceptions, which are bound to the lifetime of the
+    // tab.
+    if (prop === 'tempSciptExceptions')
+      continue;
+
     if (this[prop] instanceof Array) {
       this[prop] = [];
     }
@@ -87,6 +100,13 @@ flake.TabData.prototype.registerTab = function(tab) {
  * @param {number} tabId The ID of the tab to unregister.
  */
 flake.TabData.prototype.unregisterTab = function(tabId) {
+  var tab = this.tabs[tabId];
+  if (tab !== undefined) {
+    // Block all temporary exceptions for the lifetime of this tab.
+    tab.tempSciptExceptions.forEach(function(origin) {
+      flake.setResourceSetting(origin, 'block');
+    });
+  }
   delete this.tabs[tabId];
 };
 

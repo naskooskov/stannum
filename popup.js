@@ -3,12 +3,14 @@ function $(id) {
 }
 
 var settingsChanged = false;
+var tabId = -1;
 
 function init() {
   window.width = 600;
   window.height = 600;
   chrome.tabs.query({active: true, windowId: chrome.windows.WINDOW_ID_CURRENT}, function(tabs) {
-    chrome.extension.sendRequest({msg: 'getOrigins', tabId: tabs[0].id}, getOriginsResponse);
+    tabId = tabs[0].id;
+    chrome.extension.sendRequest({msg: 'getOrigins', 'tabId': tabId }, getOriginsResponse);
   });
 }
 
@@ -34,6 +36,7 @@ function ResourceEntry(origin, data) {
     var resource = document.createElement('div');
     var content = document.createElement('div');
     this.allowButton = document.createElement('button');
+    this.allowTempButton = document.createElement('button');
     this.blockButton = document.createElement('button');
     var label = document.createTextNode(origin);
 
@@ -43,6 +46,12 @@ function ResourceEntry(origin, data) {
     this.allowButton.resource = this;
     this.allowButton.onclick = this.allowResource;
 
+    this.allowTempButton.innerText = 'Allow Temp';
+    this.allowTempButton.disabled = true;
+    this.allowTempButton.classList.add('allow-button');
+    this.allowTempButton.resource = this;
+    this.allowTempButton.onclick = this.allowResourceTemp;
+
     this.blockButton.innerText = 'Block';
     this.blockButton.disabled = true;
     this.blockButton.classList.add('block-button');
@@ -51,6 +60,7 @@ function ResourceEntry(origin, data) {
 
     content.appendChild(label);
     content.appendChild(this.allowButton);
+    content.appendChild(this.allowTempButton);
     content.appendChild(this.blockButton);
 
     resource.id = origin;
@@ -79,6 +89,16 @@ function ResourceEntry(origin, data) {
       updateResourceState
     );
   }
+  this.allowResourceTemp = function() {
+    chrome.extension.sendRequest(
+      {
+        msg: 'allowResourceTemp', 
+        origin: this.resource.origin,
+        'tabId': tabId,
+      }, 
+      updateResourceState
+    );
+  }
   this.blockResource = function() {
     chrome.extension.sendRequest(
       {
@@ -92,9 +112,11 @@ function ResourceEntry(origin, data) {
   this.updateState = function(state) {
     if (state === 'allow') {
       this.allowButton.disabled = true;
+      this.allowTempButton.disabled = true;
       this.blockButton.disabled = false;
     } else if (state === 'block') {
       this.allowButton.disabled = false;
+      this.allowTempButton.disabled = false;
       this.blockButton.disabled = true;
     } else {
       console.log("updateState - unknown state: " + state);

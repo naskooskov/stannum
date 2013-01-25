@@ -4,3 +4,8 @@ function getOriginFromUri(uri) {
     origin += ":" + uri.port;
   return origin;
 }
+
+function getOriginFromUrl(url) {
+  var uri = parseUri(url);
+  return getOriginFromUri(uri);
+}
