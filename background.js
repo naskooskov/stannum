@@ -123,12 +123,13 @@ flake.lockDownPrivacySettings = function() {
   var settingsMap = {
     'Auto-fill': chrome.privacy.services.autofillEnabled,
     'Alternate error pages': chrome.privacy.services.alternateErrorPagesEnabled,
-    'Instant': chrome.privacy.services.instantEnabled,
     'Safe-browsing': chrome.privacy.services.safeBrowsingEnabled,
     'Search suggest': chrome.privacy.services.searchSuggestEnabled,
+    'Spelling': chrome.privacy.services.spellingServiceEnabled,
     'Translation service': chrome.privacy.services.translationServiceEnabled,
     'Network prediction': chrome.privacy.network.networkPredictionEnabled,
-    'Third-party cookies': chrome.privacy.websites.thirdPartyCookiesAllowed
+    'Third-party cookies': chrome.privacy.websites.thirdPartyCookiesAllowed,
+    'Hyperlink auditing': chrome.privacy.websites.hyperlinkAuditingEnabled
   };
 
   for (settingName in settingsMap) {
