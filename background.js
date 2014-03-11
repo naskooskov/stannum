@@ -171,10 +171,12 @@ flake.setSetting_ = function(setting, settingArgs, settingName, opt_callback) {
  */
 flake.setPrivacySetting_ = function(setting, settingArgs, settingName) {
   setting.get({}, function(details) {
-    if (details.levelOfControl == 'controllable_by_this_extension') {
+    if (details.levelOfControl == 'controllable_by_this_extension' ||
+        details.levelOfControl == 'controlled_by_this_extension') {
       flake.setSetting_(setting, settingArgs, settingName);
     } else {
-      console.warn('Access denied to set ' + settingName.toLowerCase() + '.');
+      console.warn('Access denied to set ' + settingName.toLowerCase()
+          + ': ' + details.levelOfControl);
     }
   });
 };
@@ -292,10 +294,13 @@ flake.handlers.requestFilter = function(details) {
     }
   }
 
-  if (details.type === 'main_frame') {
-    flake.tabsHolder.tabs[details.tabId].reset();
-  } else if (details.type === 'script') {
-    flake.tabsHolder.tabs[details.tabId].add('scripts', url);
+  var tab = flake.tabsHolder.tabs[details.tabId];
+  if (tab) {
+    if (details.type === 'main_frame') {
+      tab.reset();
+    } else if (details.type === 'script') {
+      tab.add('scripts', url);
+    }
   }
   
   console.log('Allowing ' + requestLog);
