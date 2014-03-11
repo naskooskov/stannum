@@ -1,53 +1,53 @@
 
 // Initialize the namespace.
-flake = window.flake || {};
+stannum = window.stannum || {};
 
 
 /**
- * The URL of the Flake extension.
+ * The URL of the Stannum extension.
  * @type {string}
  */
-flake.EXTENSION_URL = chrome.extension.getURL('');
+stannum.EXTENSION_URL = chrome.extension.getURL('');
 
 
 /**
  * Specifies if Chrome is to be in offline mode.
  * @type {boolean}
  */
-flake.offlineMode = false;
+stannum.offlineMode = false;
 
 
 /**
  * Specifies if all outgoing requests should be over HTTPS.
  * @type {boolean}
  */
-flake.alwaysHttpsMode = false;
+stannum.alwaysHttpsMode = false;
 
 
 /**
  * Specifies if all outgoing HTTP requests should be upgraded to HTTPS.
  * @type {boolean}
  */
-flake.upgradeHttpMode = false;
+stannum.upgradeHttpMode = false;
 
 
 /**
- * Initialize Flake.
+ * Initialize Stannum.
  */
-flake.init = function() {
+stannum.init = function() {
   // Install the web request filter as the first order of initialization
   chrome.webRequest.onBeforeRequest.addListener(
-    flake.handlers.requestFilter,
+    stannum.handlers.requestFilter,
     {urls: ["<all_urls>"]},
     ["blocking"]
   );
- 
-  flake.lockDownContentSettings();
-  flake.lockDownPrivacySettings();
+
+  stannum.lockDownContentSettings();
+  stannum.lockDownPrivacySettings();
   chrome.extension.onRequest.addListener(msgListener);
   // TODO(radi): Rename once config.js is refactored.
   initConfig();
-  flake.initTabs();
+  stannum.initTabs();
 };
 
 
@@ -55,11 +55,11 @@ flake.init = function() {
  * Enables/disables the offline mode in Chrome.
  * @return {boolean} True if offline mode is enabled.
  */
-flake.toggleOffline = function() {
-  flake.offlineMode = !flake.offlineMode;
+stannum.toggleOffline = function() {
+  stannum.offlineMode = !stannum.offlineMode;
   chrome.webRequest.handlerBehaviorChanged();
 
-  return flake.offlineMode;
+  return stannum.offlineMode;
 };
 
 
@@ -67,11 +67,11 @@ flake.toggleOffline = function() {
  * Enables/disables the always HTTPS mode in Chrome.
  * @return {boolean} True if always HTTPS mode is enabled.
  */
-flake.toggleAlwaysHttpsMode = function() {
-  flake.alwaysHttpsMode = !flake.alwaysHttpsMode;
+stannum.toggleAlwaysHttpsMode = function() {
+  stannum.alwaysHttpsMode = !stannum.alwaysHttpsMode;
   chrome.webRequest.handlerBehaviorChanged();
 
-  return flake.alwaysHttpsMode;
+  return stannum.alwaysHttpsMode;
 };
 
 
@@ -79,28 +79,28 @@ flake.toggleAlwaysHttpsMode = function() {
  * Enables/disables the upgrade HTTP to HTTPS mode in Chrome.
  * @return {boolean} True if upgrade HTTP to HTTPS mode is enabled.
  */
-flake.toggleUpgradeHttpMode = function() {
-  flake.upgradeHttpMode = !flake.upgradeHttpMode;
+stannum.toggleUpgradeHttpMode = function() {
+  stannum.upgradeHttpMode = !stannum.upgradeHttpMode;
   chrome.webRequest.handlerBehaviorChanged();
 
-  return flake.upgradeHttpMode;
+  return stannum.upgradeHttpMode;
 };
 
 
 /**
  * Lock down the content settings.
  */
-flake.lockDownContentSettings = function() {
+stannum.lockDownContentSettings = function() {
   var defaultArgs = {
     primaryPattern: '<all_urls>',
     setting: 'block',
     scope: 'regular'
   };
 
-  flake.setSetting_(
+  stannum.setSetting_(
       chrome.contentSettings.javascript, defaultArgs, 'JavaScript');
 
-  flake.setSetting_(chrome.contentSettings.cookies, function() {
+  stannum.setSetting_(chrome.contentSettings.cookies, function() {
     var args = JSON.parse(JSON.stringify(defaultArgs));
     args.secondaryPattern = '<all_urls>';
     args.setting = 'session_only';
@@ -108,9 +108,9 @@ flake.lockDownContentSettings = function() {
     return args;
   }(), 'Cookie persistence');
 
-  flake.setSetting_(chrome.contentSettings.plugins, defaultArgs, 'Plugins');
-  flake.setSetting_(chrome.contentSettings.popups, defaultArgs, 'Popups');
-  flake.setSetting_(
+  stannum.setSetting_(chrome.contentSettings.plugins, defaultArgs, 'Plugins');
+  stannum.setSetting_(chrome.contentSettings.popups, defaultArgs, 'Popups');
+  stannum.setSetting_(
       chrome.contentSettings.notifications, defaultArgs, 'Notifications');
 };
 
@@ -118,7 +118,7 @@ flake.lockDownContentSettings = function() {
 /**
  * Lock down the privacy settings.
  */
-flake.lockDownPrivacySettings = function() {
+stannum.lockDownPrivacySettings = function() {
   var args = {value: false};
   var settingsMap = {
     'Auto-fill': chrome.privacy.services.autofillEnabled,
@@ -133,7 +133,7 @@ flake.lockDownPrivacySettings = function() {
   };
 
   for (settingName in settingsMap) {
-    flake.setPrivacySetting_(settingsMap[settingName], args, settingName);
+    stannum.setPrivacySetting_(settingsMap[settingName], args, settingName);
   }
 };
 
@@ -147,7 +147,7 @@ flake.lockDownPrivacySettings = function() {
  *     setting is set.
  * @private
  */
-flake.setSetting_ = function(setting, settingArgs, settingName, opt_callback) {
+stannum.setSetting_ = function(setting, settingArgs, settingName, opt_callback) {
   setting.set(settingArgs, function() {
     if (chrome.extension.lastError) {
       console.error('Failed to set ' + settingName.toLowerCase() + '!',
@@ -169,11 +169,11 @@ flake.setSetting_ = function(setting, settingArgs, settingName, opt_callback) {
  * @param {string} settingName The name of the setting.
  * @private
  */
-flake.setPrivacySetting_ = function(setting, settingArgs, settingName) {
+stannum.setPrivacySetting_ = function(setting, settingArgs, settingName) {
   setting.get({}, function(details) {
     if (details.levelOfControl == 'controllable_by_this_extension' ||
         details.levelOfControl == 'controlled_by_this_extension') {
-      flake.setSetting_(setting, settingArgs, settingName);
+      stannum.setSetting_(setting, settingArgs, settingName);
     } else {
       console.warn('Access denied to set ' + settingName.toLowerCase()
           + ': ' + details.levelOfControl);
@@ -191,9 +191,9 @@ flake.setPrivacySetting_ = function(setting, settingArgs, settingName) {
  * @param {function(...)=} opt_callback An optional callback to invoke once the
  *     setting is applied to the given resource.
  */
-flake.setResourceSetting = function(origin, setting, temp, opt_callback) {
+stannum.setResourceSetting = function(origin, setting, temp, opt_callback) {
   var pattern = origin + '/*';
-  flake.setSetting_(chrome.contentSettings.javascript, {
+  stannum.setSetting_(chrome.contentSettings.javascript, {
     primaryPattern: pattern,
     setting: setting
   }, 'JavaScript', function() {
@@ -216,9 +216,9 @@ flake.setResourceSetting = function(origin, setting, temp, opt_callback) {
  * @param {!function(...)} callback The callback to invoke once the settings are
  *     retrieved.
  */
-flake.getResourceSetting = function(origin, callback) {
+stannum.getResourceSetting = function(origin, callback) {
   if (!callback) {
-    throw new Error('Missing callback to flake.getResourceSetting');
+    throw new Error('Missing callback to stannum.getResourceSetting');
   }
 
   chrome.contentSettings.javascript.get({
@@ -238,8 +238,8 @@ flake.getResourceSetting = function(origin, callback) {
  * Enables JavaScript for a given origin.
  * @param {string} origin The origin for which to enable JavaScript.
  */
-flake.enableJavaScript = function(origin) {
-  flake.setSetting_(chrome.contentSettings.javascript, {
+stannum.enableJavaScript = function(origin) {
+  stannum.setSetting_(chrome.contentSettings.javascript, {
     primaryPattern: origin + '/*',
     setting: 'allow',
     scope: 'regular'
@@ -254,38 +254,38 @@ flake.enableJavaScript = function(origin) {
  * Event handlers for handling network and navigation events.
  * @type {!Object}
  */
-flake.handlers = {};
+stannum.handlers = {};
 
 
 /**
  * Enforce user preferences with respect to which traffic is allowed.
  * @param {!Object} details HTTP request details.
  */
-flake.handlers.requestFilter = function(details) {
+stannum.handlers.requestFilter = function(details) {
   var url = details.url;
   var requestLog = 'request [' + details.tabId + '][' + details.frameId + '][' +
       details.parentFrameId + '][' + details.type + ']: ' + url;
-  
+
   // Allow all requests destined to our own extension.
-  if (url.indexOf(flake.EXTENSION_URL) == 0) {
+  if (url.indexOf(stannum.EXTENSION_URL) == 0) {
     return;
   }
-  
+
   // If we are in offline mode, block all requests.
-  if (flake.offlineMode) {
+  if (stannum.offlineMode) {
     console.log('Blocking offline ' + requestLog);
     return  {cancel: true};
   }
 
   // Transform HTTP to HTTPS.
-  if (flake.upgradeHttpMode && /^http:\/\//i.test(url)) {
+  if (stannum.upgradeHttpMode && /^http:\/\//i.test(url)) {
     var newUrl = 'https:' + url.substring(5);
     console.log('Upgraded ' + url + ' to ' + newUrl);
     return { redirectUrl: newUrl };
   }
 
   // Block non-https traffic.
-  if (flake.alwaysHttpsMode) {
+  if (stannum.alwaysHttpsMode) {
     if (/^(chrome|https):\/\//.test(details.url)) {
       console.log('Allowing ' + requestLog);
     } else {
@@ -294,7 +294,7 @@ flake.handlers.requestFilter = function(details) {
     }
   }
 
-  var tab = flake.tabsHolder.tabs[details.tabId];
+  var tab = stannum.tabsHolder.tabs[details.tabId];
   if (tab) {
     if (details.type === 'main_frame') {
       tab.reset();
@@ -302,20 +302,20 @@ flake.handlers.requestFilter = function(details) {
       tab.add('scripts', url);
     }
   }
-  
+
   console.log('Allowing ' + requestLog);
 };
 
-flake.init();
-console.log("Flake initialized");
+stannum.init();
+console.log("Stannum initialized");
 
-// Temporary hack so that refactoring does not break Flake's functionality.
+// Temporary hack so that refactoring does not break Stannum's functionality.
 
 var dispatchTable = new Array();
 
 
 dispatchTable['getOrigins'] = function getOrigins(request, sendResponse) {
-  var t = flake.tabsHolder.tabs[request.tabId];
+  var t = stannum.tabsHolder.tabs[request.tabId];
   var scripts = {};
   for (var i = 0; i < t.scripts.length; ++i) {
     var origin = getOriginFromUrl(t.scripts[i]);
@@ -329,7 +329,7 @@ dispatchTable['getOrigins'] = function getOrigins(request, sendResponse) {
 
   chrome.tabs.get(request.tabId, function(tab) {
     var tabOrigin = getOriginFromUrl(tab.url);
-    flake.getResourceSetting(tabOrigin, function(origin, value) {
+    stannum.getResourceSetting(tabOrigin, function(origin, value) {
       scripts[origin] = {'setting': value};
       var r = {'scripts': scripts};
       sendResponse(r);
@@ -340,17 +340,17 @@ dispatchTable['getOrigins'] = function getOrigins(request, sendResponse) {
 dispatchTable['allowResource'] = function(request, sendResponse) {
   var origin = request.origin;
   console.log('Allowing resource from: ' + origin);
-  flake.setResourceSetting(origin, 'allow', false, function(setting) { 
+  stannum.setResourceSetting(origin, 'allow', false, function(setting) {
     sendResponse({'origin': origin, 'setting': setting}); });
 }
 
 dispatchTable['allowResourceTemp'] = function(request, sendResponse) {
   var origin = request.origin;
   console.log('Allowing temporarily resource from: ' + origin);
-  if (flake.tabsHolder.tabs[request.tabId] !== undefined) {
-    flake.tabsHolder.tabs[request.tabId].tempSciptExceptions.push(origin);
+  if (stannum.tabsHolder.tabs[request.tabId] !== undefined) {
+    stannum.tabsHolder.tabs[request.tabId].tempSciptExceptions.push(origin);
   }
-  flake.setResourceSetting(origin, 'allow', true, function(setting) { 
+  stannum.setResourceSetting(origin, 'allow', true, function(setting) {
     sendResponse({'origin': origin, 'setting': setting}); });
 
 }
@@ -358,7 +358,7 @@ dispatchTable['allowResourceTemp'] = function(request, sendResponse) {
 dispatchTable['blockResource'] = function(request, sendResponse) {
   var origin = request.origin;
   console.log('Blocking resource from: ' + origin);
-  flake.setResourceSetting(origin, 'block', function(setting) { 
+  stannum.setResourceSetting(origin, 'block', function(setting) {
     sendResponse({'origin': origin, 'setting': setting}); });
 }
 

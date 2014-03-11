@@ -1,6 +1,6 @@
 
 // Initialize the namespace.
-flake = window.flake || {}
+stannum = window.stannum || {}
 
 
 
@@ -9,7 +9,7 @@ flake = window.flake || {}
  * @param {number} tabId The ID of the tab.
  * @constructor
  */
-flake.TabInstance = function(tabId) {
+stannum.TabInstance = function(tabId) {
   /**
    * The ID of the tab.
    * @type {number}
@@ -57,12 +57,12 @@ flake.TabInstance = function(tabId) {
 };
 
 
-flake.TabInstance.prototype.add = function(objType, uri) {
+stannum.TabInstance.prototype.add = function(objType, uri) {
   this[objType].push(uri);
 };
 
 
-flake.TabInstance.prototype.reset = function() {
+stannum.TabInstance.prototype.reset = function() {
   for (var prop in this) {
     // Skip the temporary exceptions, which are bound to the lifetime of the
     // tab.
@@ -81,7 +81,7 @@ flake.TabInstance.prototype.reset = function() {
  * An object to allow easier management of collections of tab representations.
  * @constructor
  */
-flake.TabData = function() {
+stannum.TabData = function() {
   this.tabs = {};
 };
 
@@ -90,8 +90,8 @@ flake.TabData = function() {
  * Register a tab so that its resources can be properly managed.
  * @param {!Object} tab The tab to register.
  */
-flake.TabData.prototype.registerTab = function(tab) {
-  this.tabs[tab.id] = new flake.TabInstance(tab.id);
+stannum.TabData.prototype.registerTab = function(tab) {
+  this.tabs[tab.id] = new stannum.TabInstance(tab.id);
 };
 
 
@@ -99,12 +99,12 @@ flake.TabData.prototype.registerTab = function(tab) {
  * Unregister a tab.
  * @param {number} tabId The ID of the tab to unregister.
  */
-flake.TabData.prototype.unregisterTab = function(tabId) {
+stannum.TabData.prototype.unregisterTab = function(tabId) {
   var tab = this.tabs[tabId];
   if (tab !== undefined) {
     // Block all temporary exceptions for the lifetime of this tab.
     tab.tempSciptExceptions.forEach(function(origin) {
-      flake.setResourceSetting(origin, 'block');
+      stannum.setResourceSetting(origin, 'block');
     });
   }
   delete this.tabs[tabId];
@@ -113,29 +113,29 @@ flake.TabData.prototype.unregisterTab = function(tabId) {
 
 /**
  * A collection of managed tabs.
- * @type {!flake.TabData}
+ * @type {!stannum.TabData}
  */
-flake.tabsHolder = new flake.TabData();
+stannum.tabsHolder = new stannum.TabData();
 
 
 /**
  * Start monitoring the Chrome tabs.
  */
-flake.initTabs = function() {
+stannum.initTabs = function() {
   // Register all existing tabs.
   chrome.tabs.query({}, function(tabsArray) {
     tabsArray.forEach(function(tab) {
-      flake.tabsHolder.registerTab(tab);
+      stannum.tabsHolder.registerTab(tab);
     });
   });
 
   // Register new tabs upon creation.
   chrome.tabs.onCreated.addListener(function(tab) {
-    flake.tabsHolder.registerTab(tab);
+    stannum.tabsHolder.registerTab(tab);
   });
 
   // Unregister a tab when it's being closed.
   chrome.tabs.onRemoved.addListener(function(tabId) {
-    flake.tabsHolder.unregisterTab(tabId);
+    stannum.tabsHolder.unregisterTab(tabId);
   });
 };

@@ -2,26 +2,26 @@
  * Handle the options for the extension.
  */
 chrome.runtime.getBackgroundPage(function(page) {
-  flake = page.flake;
+  stannum = page.stannum;
   var $ = document.getElementById.bind(document);
-  
-  $('offlineMode').checked = flake.offlineMode;
-  $('onlyHttps').checked = flake.alwaysHttpsMode;
-  $('upgradeHttp').checked = flake.upgradeHttpMode;
+
+  $('offlineMode').checked = stannum.offlineMode;
+  $('onlyHttps').checked = stannum.alwaysHttpsMode;
+  $('upgradeHttp').checked = stannum.upgradeHttpMode;
 
   $('offlineMode').addEventListener('click', function() {
-    if (flake) {
-      flake.toggleOffline();
+    if (stannum) {
+      stannum.toggleOffline();
     }
   });
   $('onlyHttps').addEventListener('click', function() {
-    if (flake) {
-      flake.toggleAlwaysHttpsMode();
+    if (stannum) {
+      stannum.toggleAlwaysHttpsMode();
     }
   });
   $('upgradeHttp').addEventListener('click', function() {
-    if (flake) {
-      flake.toggleUpgradeHttpMode();
+    if (stannum) {
+      stannum.toggleUpgradeHttpMode();
     }
   });
 });
