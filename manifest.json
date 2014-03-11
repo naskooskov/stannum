@@ -1,8 +1,8 @@
 {
-  "name" : "Flake",
+  "name" : "Stannum",
   "version" : "0.1",
   "manifest_version": 2,
-  "description" : "Extension to experiment with script blocking and other security measures in Chrome.",
+  "description" : "Extension to experiment with resource blocking and other security measures in Chrome.",
   "icons": { "16": "icon-16.png", "48": "icon-48.png", "128": "icon-256.png" },
   "browser_action": {
     "default_icon": "icon-16.png",
@@ -12,8 +12,8 @@
     "page": "background.html"
   },
   "options_page": "options.html",
-  "permissions": [ 
+  "permissions": [
     "cookies", "tabs", "*://*/*", "webRequest", "webRequestBlocking",
-    "contentSettings", "privacy" 
+    "contentSettings", "privacy"
   ]
 }
