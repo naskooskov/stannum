@@ -15,5 +15,13 @@
   "permissions": [
     "cookies", "tabs", "*://*/*", "webRequest", "webRequestBlocking",
     "contentSettings", "privacy"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "css": ["insecure-detector.css"],
+      "js": ["insecure-detector.js"],
+      "all_frames": true
+    }
   ]
 }
